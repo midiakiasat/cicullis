@@ -1,14 +1,22 @@
 #!/bin/sh
-# KAIROCLASP v0.0.0
+# KAIROCLASP v1.0.0
 # Temporal finality utility
-# Binds state to time. No execution. No mutation. No remediation.
+# Binds state to time. No execution. No remediation.
 
 set -eu
+
+# --- Preconditions ---------------------------------------------------------
 
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   printf '%s\n' "KAIROCLASP: not a git repository" >&2
   exit 2
 }
+
+LEDGER_DIR="${1:?LEDGER_PATH_REQUIRED}"
+[ -d "$LEDGER_DIR" ] || exit 2
+LOG="$LEDGER_DIR/kairoclasp.log"
+
+# --- Input ----------------------------------------------------------------
 
 INPUT="$(cat)"
 
@@ -19,10 +27,14 @@ INPUT="$(cat)"
 
 TEXT="$(printf '%s' "$INPUT")"
 
-if [ -f KAIROCLASP.log ] && grep -q '^TIME:' KAIROCLASP.log; then
+# --- Single-use enforcement -----------------------------------------------
+
+if [ -f "$LOG" ] && grep -q '^TIME:' "$LOG"; then
   printf '%s\n' "EXPIRED"
   exit 1
 fi
+
+# --- Time extraction -------------------------------------------------------
 
 LOCK_TIME="$(printf '%s' "$TEXT" | grep -Eo \
   '[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z' | head -n 1)"
@@ -46,10 +58,12 @@ LOCK_EPOCH="$(
 
 NOW_EPOCH="$(date -u +%s)"
 
-if [ "$NOW_EPOCH" -lt "$LOCK_EPOCH" ]; then
+[ "$NOW_EPOCH" -lt "$LOCK_EPOCH" ] && {
   printf '%s\n' "DENIED"
   exit 1
-fi
+}
+
+# --- Ledger ---------------------------------------------------------------
 
 TIMESTAMP="$NOW"
 COMMIT="$(git rev-parse --verify HEAD 2>/dev/null || printf '%s' UNCOMMITTED)"
@@ -62,7 +76,9 @@ REPO="$(git rev-parse --show-toplevel)"
   printf 'LOCK_AT: %s\n' "$LOCK_TIME"
   printf 'NOW: %s\n' "$NOW"
   printf '---\n'
-} >> KAIROCLASP.log
+} >> "$LOG"
+
+# --- Verdict --------------------------------------------------------------
 
 printf '%s\n' "CLASPED"
 exit 0

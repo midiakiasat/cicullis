@@ -1,7 +1,7 @@
 #!/bin/sh
-# ORIGINSEAL v0.0.0
+# ORIGINSEAL v1.0.0
 # Provenance sealing utility
-# Anchors original origin. No execution. No mutation. No remediation.
+# Anchors original origin. No execution. No remediation.
 
 set -eu
 
@@ -11,6 +11,10 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   printf '%s\n' "ORIGINSEAL: not a git repository" >&2
   exit 2
 }
+
+LEDGER_DIR="${1:?LEDGER_PATH_REQUIRED}"
+[ -d "$LEDGER_DIR" ] || exit 2
+LOG="$LEDGER_DIR/originseal.log"
 
 # --- Input ----------------------------------------------------------------
 
@@ -25,7 +29,7 @@ TEXT="$(printf '%s' "$INPUT")"
 
 # --- Single-Seal Enforcement ----------------------------------------------
 
-if [ -f ORIGINSEAL.log ] && grep -q '^TIME:' ORIGINSEAL.log; then
+if [ -f "$LOG" ] && grep -q '^TIME:' "$LOG"; then
   printf '%s\n' "DENIED"
   exit 1
 fi
@@ -48,7 +52,7 @@ TIMESTAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
   printf 'BIRTH_TREE: %s\n' "$BIRTH_TREE"
   printf 'ORIGIN_CONTEXT:\n%s\n' "$TEXT"
   printf '---\n'
-} >> ORIGINSEAL.log
+} >> "$LOG"
 
 # --- Verdict ---------------------------------------------------------------
 

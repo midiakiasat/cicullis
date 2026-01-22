@@ -1,7 +1,7 @@
 #!/bin/sh
-# ATTESTORIUM v0.0.0
+# ATTESTORIUM v1.0.0
 # Deterministic attestation utility
-# Witness only. No execution. No mutation. No remediation.
+# Witness only. No execution. No remediation.
 
 set -eu
 
@@ -11,6 +11,10 @@ git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   printf '%s\n' "ATTESTORIUM: not a git repository" >&2
   exit 2
 }
+
+LEDGER_DIR="${1:?LEDGER_PATH_REQUIRED}"
+[ -d "$LEDGER_DIR" ] || exit 2
+LOG="$LEDGER_DIR/attestorium.log"
 
 # --- Input Capture ----------------------------------------------------------
 
@@ -44,16 +48,22 @@ ATTESTATION_PAYLOAD="$(printf '%s\n%s\n%s\n%s\n%s' \
 
 DIGEST="$(printf '%s' "$ATTESTATION_PAYLOAD" | sha256sum | awk '{print $1}')"
 
+# --- Attestation Record ----------------------------------------------------
+
+{
+  printf '%s\n' "ATTESTATION"
+  printf '%s\n' "----------"
+  printf 'repo:      %s\n' "$REPO_ROOT"
+  printf 'commit:    %s\n' "$HEAD_COMMIT"
+  printf 'tree:      %s\n' "$HEAD_TREE"
+  printf 'time:      %s\n' "$TIMESTAMP"
+  printf 'digest:    %s\n\n' "$DIGEST"
+  printf '%s\n' "stdin:"
+  printf '%s\n' "$INPUT"
+  printf '\n---\n'
+} >> "$LOG"
+
 # --- Output ----------------------------------------------------------------
 
-printf '%s\n' "ATTESTATION"
-printf '%s\n' "----------"
-printf 'repo:      %s\n' "$REPO_ROOT"
-printf 'commit:    %s\n' "$HEAD_COMMIT"
-printf 'tree:      %s\n' "$HEAD_TREE"
-printf 'time:      %s\n' "$TIMESTAMP"
-printf 'digest:    %s\n\n' "$DIGEST"
-printf '%s\n' "stdin:"
-printf '%s\n' "$INPUT"
-
+printf '%s\n' "ATTESTED"
 exit 0

@@ -16,35 +16,44 @@ fail() {
   exit 1
 }
 
+PROFILE_INPUT="$(cat "$PROFILE")"
+
 # --- Time boundary ----------------------------------------------------------
 
-"$ENGINE/kairoclasp.sh" "$STATE" || fail "TIME_BOUNDARY_VIOLATION"
+printf '%s' "$PROFILE_INPUT" | \
+  "$ENGINE/kairoclasp.sh" "$LEDGER" || fail "TIME_BOUNDARY_VIOLATION"
 
 # --- Custody ---------------------------------------------------------------
 
-"$ENGINE/archicustos.sh" "$PROFILE" || fail "CUSTODY_VIOLATION"
+printf '%s' "$PROFILE_INPUT" | \
+  "$ENGINE/archicustos.sh" "$LEDGER" || fail "CUSTODY_VIOLATION"
 
 # --- Provenance ------------------------------------------------------------
 
-"$ENGINE/originseal.sh" "$STATE" || fail "PROVENANCE_VIOLATION"
+printf '%s' "$PROFILE_INPUT" | \
+  "$ENGINE/originseal.sh" "$LEDGER" || fail "PROVENANCE_VIOLATION"
 
 # --- Boundary enforcement --------------------------------------------------
 
-"$ENGINE/limenward.sh" "$PROFILE" || fail "BOUNDARY_VIOLATION"
+printf '%s' "$PROFILE_INPUT" | \
+  "$ENGINE/limenward.sh" "$LEDGER" || fail "BOUNDARY_VIOLATION"
 
 # --- Deterministic verification -------------------------------------------
 
-"$ENGINE/validexor.sh" "$PROFILE" || fail "VERIFICATION_VIOLATION"
+printf '%s' "$PROFILE_INPUT" | \
+  "$ENGINE/validexor.sh" || fail "VERIFICATION_VIOLATION"
 
 # --- Attestation -----------------------------------------------------------
 
-"$ENGINE/attestorium.sh" "$LEDGER" || fail "ATTESTATION_FAILURE"
+printf '%s' "$PROFILE_INPUT" | \
+  "$ENGINE/attestorium.sh" "$LEDGER" || fail "ATTESTATION_FAILURE"
 
 # --- Judgment --------------------------------------------------------------
 
-"$ENGINE/irrevocull.sh" || fail "JUDGMENT_FAILED"
+printf '%s' "$PROFILE_INPUT" | \
+  "$ENGINE/irrevocull.sh" || fail "JUDGMENT_FAILED"
 
-# --- Optional execution (hard finality) ------------------------------------
+# --- Optional execution (explicit, restricted) -----------------------------
 
 if [ "${CI_CICULLIS_EXECUTE:-0}" = "1" ]; then
   "$ENGINE/guillotine.sh" || fail "EXECUTION_REFUSED"

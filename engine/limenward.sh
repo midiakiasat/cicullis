@@ -1,23 +1,25 @@
 #!/bin/sh
-# LIMENWARD v0.0.0
+# LIMENWARD v1.0.0
 # Boundary enforcement utility
-# Guards transitions. No execution. No mutation. No remediation.
+# Guards irreversible transitions. No execution. No remediation.
 
 set -eu
 
 # --- Preconditions ---------------------------------------------------------
 
-# Must be inside a git repository
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
   printf '%s\n' "LIMENWARD: not a git repository" >&2
   exit 2
 }
 
+LEDGER_DIR="${1:?LEDGER_PATH_REQUIRED}"
+[ -d "$LEDGER_DIR" ] || exit 2
+LOG="$LEDGER_DIR/limenward.log"
+
 # --- Input ----------------------------------------------------------------
 
 INPUT="$(cat)"
 
-# Silence is a blocked transition
 [ -z "$INPUT" ] && {
   printf '%s\n' "DENIED"
   exit 1
@@ -34,9 +36,9 @@ printf '%s' "$TEXT" | grep -Eiq \
   exit 1
 }
 
-# Require explicit marker of intent or finality
+# Require explicit, anchored marker of finality
 printf '%s' "$TEXT" | grep -Eq \
-  '(^|[^a-z])(final|approved|ready|commit|publish|release|execute)([^a-z]|$)' || {
+  '(^|[^a-z])(FINAL|APPROVED|READY|COMMIT|PUBLISH|RELEASE|EXECUTE)([^a-z]|$)' || {
   printf '%s\n' "DENIED"
   exit 1
 }
@@ -51,7 +53,7 @@ COMMIT="$(git rev-parse --verify HEAD 2>/dev/null || printf '%s' UNCOMMITTED)"
   printf 'COMMIT: %s\n' "$COMMIT"
   printf 'INPUT:\n%s\n' "$TEXT"
   printf '---\n'
-} >> LIMENWARD.log
+} >> "$LOG"
 
 # --- Verdict --------------------------------------------------------------
 
