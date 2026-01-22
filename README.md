@@ -1,5 +1,11 @@
 # CICULLIS
 
+[![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-CICULLIS-blue?logo=github)](https://github.com/marketplace/actions/cicullis)
+![CI](https://img.shields.io/badge/CI-deterministic-critical)
+![Security](https://img.shields.io/badge/security-enforcement-critical)
+![Governance](https://img.shields.io/badge/governance-forward--only-important)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 **CICULLIS** is a GitHub Action that enforces **irreversible contracts at CI time**.
 
 It is a **binary gate**.
@@ -9,6 +15,22 @@ It **blocks**.
 
 If CICULLIS passes, the decision is closed.
 If it fails, nothing moves forward.
+
+---
+
+## Why CICULLIS Exists
+
+Most CI systems are built to **advise**: lint, test, report, recommend.
+That works until you operate under conditions where **reversibility is fiction**:
+
+* a release cannot be unshipped
+* a policy cannot be partially enforced
+* a custody chain cannot be repaired after the fact
+* an audit trail cannot be reconstructed honestly
+
+CICULLIS exists for environments where the only acceptable behavior is:
+
+> **either the contract holds, or execution stops**
 
 ---
 
@@ -28,11 +50,25 @@ CICULLIS runs automatically in CI and exits **pass / fail** only.
 * Not a linter
 * Not a policy suggestion tool
 * Not a report generator
-* Not configurable per rule
 * Not interactive
+* Not configurable per rule
 
-There is no "warn" mode.
+There is no **warn** mode.
 There is no silent bypass.
+
+---
+
+## Threat Model — What CICULLIS Prevents
+
+CICULLIS is designed to stop failures that typical CI pipelines allow:
+
+* **Post‑merge regret** — decisions that "passed CI" but should never have shipped
+* **Supply‑chain drift** — unpinned, mutable dependencies changing behavior over time
+* **Custody breaks** — artifacts without accountable ownership or provenance
+* **Audit ambiguity** — pipelines that cannot prove *when* and *why* a decision was made
+* **Human override leakage** — silent exceptions that erode enforcement guarantees
+
+If a threat depends on *flexibility*, CICULLIS treats it as hostile.
 
 ---
 
@@ -52,9 +88,9 @@ Any violation causes an immediate CI failure.
 
 ---
 
-## Installation
+## Quick Start
 
-Add one step to your workflow:
+Add CICULLIS to your workflow:
 
 ```yaml
 - uses: midiakiasat/cicullis@v1
@@ -64,20 +100,57 @@ No configuration is required.
 
 ---
 
+## Minimal Workflow Example
+
+Create a workflow file in your repository:
+
+**`.github/workflows/cicullis.yml`**
+
+```yaml
+name: CICULLIS
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  cicullis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: midiakiasat/cicullis@v1
+```
+
+---
+
+## Security Recommendation: Pin to a Commit SHA
+
+For security‑sensitive environments, pin CICULLIS to a specific **commit SHA** instead of a moving tag.
+
+```yaml
+- uses: midiakiasat/cicullis@<commit-sha>
+```
+
+This reduces supply‑chain risk and guarantees identical behavior across time.
+
+---
+
 ## Profiles
 
 CICULLIS behavior is defined by a **profile**.
 
-By default, CICULLIS runs with:
+Default profile:
 
-```
+```text
 profiles/default.profile
 ```
 
 Profiles are **strict**, **explicit**, and **forward‑only**.
 
-There is no per‑rule toggle.
-If a rule exists, it is enforced.
+* No per‑rule toggles
+* If a rule exists, it is enforced
 
 ---
 
@@ -89,9 +162,7 @@ When CICULLIS fails, CI output contains:
 * the affected artifact
 * the closed decision
 
-Example:
-
-```
+```text
 CI-GATE FAILED
 Rule: PROVENANCE.SEAL.MISSING
 Decision: BLOCKED
@@ -114,27 +185,35 @@ Pin versions to guarantee behavior.
 
 ---
 
-## License
+## FAQ (Brutal Answers)
 
-MIT License.
+**Q: Can I disable a rule?**
+No.
 
-Use freely.
-Fork freely.
+**Q: Can I run in warn‑only mode?**
+No.
 
-Responsibility for outcomes remains with the operator.
+**Q: Can maintainers override a failure?**
+Not without changing history.
+
+**Q: Is this suitable for every project?**
+Absolutely not.
+
+**Q: What happens when CICULLIS blocks something critical?**
+A human must take responsibility.
 
 ---
 
 ## Intended Use
 
-CICULLIS is designed for teams that:
+CICULLIS is for teams that:
 
 * require **final decisions**
 * cannot tolerate silent regression
 * operate under audit, compliance, or risk pressure
 * want enforcement, not advice
 
-If you need flexibility, CICULLIS is not for you.
+If you need flexibility, CICULLIS is the wrong tool.
 
 ---
 
@@ -147,3 +226,14 @@ Support, assurance, incident response, and custom profiles are **out of band**.
 When CICULLIS blocks something important, someone must decide.
 
 That is the point.
+
+---
+
+## License
+
+MIT License.
+
+Use freely.
+Fork freely.
+
+Responsibility for outcomes remains with the operator.
