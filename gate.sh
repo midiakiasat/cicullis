@@ -12,7 +12,9 @@ mkdir -p "$STATE" "$LEDGER"
 
 fail() {
   printf '%s\n' "CI-GATE FAILED"
-  printf '%s\n' "$1"
+  printf 'STAGE: %s\n' "$1"
+  printf 'RULE:  %s\n' "$2"
+  printf 'DECISION: BLOCKED\n'
   exit 1
 }
 
@@ -21,42 +23,51 @@ PROFILE_INPUT="$(cat "$PROFILE")"
 # --- Time boundary ----------------------------------------------------------
 
 printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/kairoclasp.sh" "$LEDGER" || fail "TIME_BOUNDARY_VIOLATION"
+  "$ENGINE/kairoclasp.sh" "$LEDGER" \
+  || fail "TIME" "TIME.BOUNDARY.VIOLATION"
 
 # --- Custody ---------------------------------------------------------------
 
 printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/archicustos.sh" "$LEDGER" || fail "CUSTODY_VIOLATION"
+  "$ENGINE/archicustos.sh" "$LEDGER" \
+  || fail "CUSTODY" "CUSTODY.VIOLATION"
 
 # --- Provenance ------------------------------------------------------------
 
 printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/originseal.sh" "$LEDGER" || fail "PROVENANCE_VIOLATION"
+  "$ENGINE/originseal.sh" "$LEDGER" \
+  || fail "PROVENANCE" "PROVENANCE.VIOLATION"
 
 # --- Boundary enforcement --------------------------------------------------
 
 printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/limenward.sh" "$LEDGER" || fail "BOUNDARY_VIOLATION"
+  "$ENGINE/limenward.sh" "$LEDGER" \
+  || fail "BOUNDARY" "BOUNDARY.VIOLATION"
 
 # --- Deterministic verification -------------------------------------------
 
 printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/validexor.sh" || fail "VERIFICATION_VIOLATION"
+  "$ENGINE/validexor.sh" \
+  || fail "VERIFICATION" "VERIFICATION.VIOLATION"
 
 # --- Attestation -----------------------------------------------------------
 
 printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/attestorium.sh" "$LEDGER" || fail "ATTESTATION_FAILURE"
+  "$ENGINE/attestorium.sh" "$LEDGER" \
+  || fail "ATTESTATION" "ATTESTATION.FAILURE"
 
 # --- Judgment --------------------------------------------------------------
 
 printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/irrevocull.sh" || fail "JUDGMENT_FAILED"
+  "$ENGINE/irrevocull.sh" \
+  || fail "JUDGMENT" "JUDGMENT.FAILED"
 
 # --- Optional execution (explicit, restricted) -----------------------------
 
 if [ "${CI_CICULLIS_EXECUTE:-0}" = "1" ]; then
-  "$ENGINE/guillotine.sh" || fail "EXECUTION_REFUSED"
+  "$ENGINE/guillotine.sh" \
+    || fail "EXECUTION" "EXECUTION.REFUSED"
 fi
 
+printf '%s\n' "CI-GATE PASSED"
 exit 0
