@@ -4,6 +4,7 @@
 ![CI](https://img.shields.io/badge/CI-deterministic-critical)
 ![Security](https://img.shields.io/badge/security-enforcement-critical)
 ![Governance](https://img.shields.io/badge/governance-forward--only-important)
+![Supply Chain](https://img.shields.io/badge/supply--chain-locked-critical)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **CICULLIS** is a GitHub Action that enforces **irreversible contracts at CI time**.
@@ -20,8 +21,8 @@ If it fails, nothing moves forward.
 
 ## Why CICULLIS Exists
 
-Most CI systems are built to **advise**: lint, test, report, recommend.
-That works until you operate under conditions where **reversibility is fiction**:
+Most CI systems are designed to **advise**: lint, test, report, recommend.
+That model collapses in environments where **reversibility is an illusion**:
 
 * a release cannot be unshipped
 * a policy cannot be partially enforced
@@ -62,11 +63,11 @@ There is no silent bypass.
 
 CICULLIS is designed to stop failures that typical CI pipelines allow:
 
-* **Post‑merge regret** — decisions that "passed CI" but should never have shipped
-* **Supply‑chain drift** — unpinned, mutable dependencies changing behavior over time
+* **Post‑merge regret** — decisions that passed CI but should never have shipped
+* **Supply‑chain drift** — mutable tags and dependencies altering behavior over time
 * **Custody breaks** — artifacts without accountable ownership or provenance
-* **Audit ambiguity** — pipelines that cannot prove *when* and *why* a decision was made
-* **Human override leakage** — silent exceptions that erode enforcement guarantees
+* **Audit ambiguity** — inability to prove *when* and *why* a decision was made
+* **Human override leakage** — informal exceptions that erode enforcement guarantees
 
 If a threat depends on *flexibility*, CICULLIS treats it as hostile.
 
@@ -133,7 +134,7 @@ For security‑sensitive environments, pin CICULLIS to a specific **commit SHA**
 - uses: midiakiasat/cicullis@<commit-sha>
 ```
 
-This reduces supply‑chain risk and guarantees identical behavior across time.
+This eliminates supply‑chain drift and guarantees identical behavior across time.
 
 ---
 
@@ -185,7 +186,7 @@ Pin versions to guarantee behavior.
 
 ---
 
-## FAQ (Brutal Answers)
+## FAQ
 
 **Q: Can I disable a rule?**
 No.
