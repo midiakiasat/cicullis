@@ -8,10 +8,6 @@ set -eu
 # --- Governance / security workflow exemption -------------------------------
 # CICULLIS MUST NOT block scanners, auditors, or governance signals.
 # These workflows are observational, not mutative.
-if [ "${GITHUB_WORKFLOW:-}" = "OpenSSF Scorecard" ]; then
-  printf '%s\n' "CI-GATE PASSED (governance workflow exempt)"
-  exit 0
-fi
 
 # ---------------------------------------------------------------------------
 
