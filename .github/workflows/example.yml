@@ -8,8 +8,13 @@ permissions:
 
 jobs:
   cicullis:
+    # Do NOT run CICULLIS on the OpenSSF Scorecard workflow
+    if: github.workflow != 'OpenSSF Scorecard'
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - uses: midiakiasat/cicullis@v1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run CICULLIS
+        uses: midiakiasat/cicullis@v1
