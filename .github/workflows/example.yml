@@ -2,11 +2,15 @@ name: CICULLIS (example)
 
 on:
   pull_request:
-    paths-ignore:
-      - '.github/**'
-      - 'engine/**'
-      - 'profiles/**'
-      - 'gate.sh'
+    paths:
+      - 'src/**'
+      - 'lib/**'
+      - '!engine/**'
+      - '!profiles/**'
+      - '!gate.sh'
+      - '!action.yml'
+      - '!README.md'
+      - '!SECURITY.md'
 
 permissions:
   contents: read
