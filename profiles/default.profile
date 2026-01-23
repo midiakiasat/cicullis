@@ -6,9 +6,9 @@ PROFILE_MODE    = STRICT
 PROFILE_LOCK    = FINAL
 
 # --- TIME -------------------------------------------------
-# LOCK_AT MUST BE IN THE PAST FOR CI TO RUN
+# CI MUST NOT BLOCK ITSELF
 
-LOCK_AT                    = 2025-01-01T00:00:00Z
+LOCK_AT                    = 2000-01-01T00:00:00Z
 TIME_BOUNDARY.ENFORCE      = NO
 TIME_BOUNDARY.MUTABLE      = NO
 
