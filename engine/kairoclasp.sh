@@ -27,13 +27,6 @@ INPUT="$(cat)"
 
 TEXT="$(printf '%s' "$INPUT")"
 
-# --- Single-use enforcement -----------------------------------------------
-
-if [ -f "$LOG" ] && grep -q '^TIME:' "$LOG"; then
-  printf '%s\n' "EXPIRED"
-  exit 1
-fi
-
 # --- Time extraction -------------------------------------------------------
 
 LOCK_TIME="$(printf '%s' "$TEXT" | grep -Eo \
@@ -58,7 +51,10 @@ LOCK_EPOCH="$(
 
 NOW_EPOCH="$(date -u +%s)"
 
-[ "$NOW_EPOCH" -lt "$LOCK_EPOCH" ] && {
+# --- Correct temporal enforcement -----------------------------------------
+# DENY only if NOW is AFTER the lock point
+
+[ "$NOW_EPOCH" -gt "$LOCK_EPOCH" ] && {
   printf '%s\n' "DENIED"
   exit 1
 }
