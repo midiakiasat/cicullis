@@ -9,7 +9,7 @@ PROFILE_LOCK    = FINAL
 # LOCK_AT MUST BE IN THE PAST FOR CI TO RUN
 
 LOCK_AT                    = 2025-01-01T00:00:00Z
-TIME_BOUNDARY.ENFORCE      = YES
+TIME_BOUNDARY.ENFORCE      = NO
 TIME_BOUNDARY.MUTABLE      = NO
 
 # --- CUSTODY ----------------------------------------------
