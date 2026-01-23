@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # GUILLOTINE v1.0.0
 # Irreversible execution terminator
 # One-way. Restricted. CI-safe.

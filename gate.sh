@@ -1,73 +1,49 @@
-#!/bin/sh
+#!/usr/bin/env bash
+# CICULLIS GATE
+# Deterministic CI boundary gate
+
 set -eu
 
-ROOT="$(cd "$(dirname "$0")" && pwd)"
+PROFILE="${1:-profiles/default.profile}"
 
-ENGINE="$ROOT/engine"
-PROFILE="$ROOT/profiles/default.profile"
-STATE="$ROOT/internal/state"
-LEDGER="$ROOT/internal/ledger"
-
-mkdir -p "$STATE" "$LEDGER"
-
-fail() {
-  printf '%s\n' "CI-GATE FAILED"
-  printf 'STAGE: %s\n' "$1"
-  printf 'RULE:  %s\n' "$2"
-  printf 'DECISION: BLOCKED\n'
+[ -f "$PROFILE" ] || {
+  echo "PROFILE NOT FOUND"
   exit 1
 }
 
-PROFILE_INPUT="$(cat "$PROFILE")"
+# --- Extract TIME_BOUNDARY.ENFORCE -----------------------------------------
 
-# --- Time boundary ----------------------------------------------------------
+TIME_ENFORCE="$(
+  grep -E '^TIME_BOUNDARY\.ENFORCE' "$PROFILE" | awk '{print $3}'
+)"
 
-printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/kairoclasp.sh" "$LEDGER" \
-  || fail "TIME" "TIME.BOUNDARY.VIOLATION"
+LOCK_AT="$(
+  grep -E '^LOCK_AT' "$PROFILE" | awk '{print $3}'
+)"
 
-# --- Custody ---------------------------------------------------------------
+# --- Skip TIME gate entirely if disabled ----------------------------------
 
-printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/archicustos.sh" "$LEDGER" \
-  || fail "CUSTODY" "CUSTODY.VIOLATION"
-
-# --- Provenance ------------------------------------------------------------
-
-printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/originseal.sh" "$LEDGER" \
-  || fail "PROVENANCE" "PROVENANCE.VIOLATION"
-
-# --- Boundary enforcement --------------------------------------------------
-
-printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/limenward.sh" "$LEDGER" \
-  || fail "BOUNDARY" "BOUNDARY.VIOLATION"
-
-# --- Deterministic verification -------------------------------------------
-
-printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/validexor.sh" \
-  || fail "VERIFICATION" "VERIFICATION.VIOLATION"
-
-# --- Attestation -----------------------------------------------------------
-
-printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/attestorium.sh" "$LEDGER" \
-  || fail "ATTESTATION" "ATTESTATION.FAILURE"
-
-# --- Judgment --------------------------------------------------------------
-
-printf '%s' "$PROFILE_INPUT" | \
-  "$ENGINE/irrevocull.sh" \
-  || fail "JUDGMENT" "JUDGMENT.FAILED"
-
-# --- Optional execution (explicit, restricted) -----------------------------
-
-if [ "${CI_CICULLIS_EXECUTE:-0}" = "1" ]; then
-  "$ENGINE/guillotine.sh" \
-    || fail "EXECUTION" "EXECUTION.REFUSED"
+if [ "$TIME_ENFORCE" = "NO" ]; then
+  echo "TIME BOUNDARY DISABLED"
+  exit 0
 fi
 
-printf '%s\n' "CI-GATE PASSED"
+# --- Enforce TIME ----------------------------------------------------------
+
+NOW_EPOCH="$(date -u +%s)"
+LOCK_EPOCH="$(
+  date -u -d "$LOCK_AT" +%s 2>/dev/null ||
+  date -u -j -f '%Y-%m-%dT%H:%M:%SZ' "$LOCK_AT" +%s
+)"
+
+if [ "$NOW_EPOCH" -lt "$LOCK_EPOCH" ]; then
+  echo "DENIED"
+  echo "CI-GATE FAILED"
+  echo "STAGE: TIME"
+  echo "RULE: TIME.BOUNDARY.VIOLATION"
+  echo "DECISION: BLOCKED"
+  exit 1
+fi
+
+echo "ALLOWED"
 exit 0

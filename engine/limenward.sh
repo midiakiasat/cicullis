@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # LIMENWARD v1.0.0
 # Boundary enforcement utility
 # Guards irreversible transitions. No execution. No remediation.
@@ -52,7 +52,7 @@ COMMIT="$(git rev-parse --verify HEAD 2>/dev/null || printf '%s' UNCOMMITTED)"
   printf 'TIME: %s\n' "$TIMESTAMP"
   printf 'COMMIT: %s\n' "$COMMIT"
   printf 'INPUT:\n%s\n' "$TEXT"
-  printf '---\n'
+  printf '%s\n' '---'
 } >> "$LOG"
 
 # --- Verdict --------------------------------------------------------------

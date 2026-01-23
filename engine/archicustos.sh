@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # ARCHICUSTOS v1.0.0
 # Custody tracking utility
 # Records custody claims with continuity enforcement.
@@ -70,7 +70,7 @@ REPO="$(git rev-parse --show-toplevel)"
   printf 'REPO: %s\n' "$REPO"
   printf 'COMMIT: %s\n' "$COMMIT"
   printf 'CUSTODY:\n%s\n' "$TEXT"
-  printf '---\n'
+  printf '%s\n' '---'
 } >> "$LOG"
 
 # --- Verdict ---------------------------------------------------------------

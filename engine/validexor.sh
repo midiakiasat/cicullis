@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # VALIDEXOR v1.0.0
 # Deterministic verification utility
 # Verifies claims against observable state. No judgment. No execution.

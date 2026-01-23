@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 # IRREVOCULL v1.0.0
 # Irreversible Judgment Utility
 # Judgment only. No execution. No mitigation. No appeal.
