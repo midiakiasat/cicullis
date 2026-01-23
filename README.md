@@ -5,6 +5,8 @@
 ![Security](https://img.shields.io/badge/security-enforcement-critical)
 ![Governance](https://img.shields.io/badge/governance-forward--only-important)
 ![Supply Chain](https://img.shields.io/badge/supply--chain-locked-critical)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/midiakiasat/cicullis/badge)](https://securityscorecards.dev/viewer/?uri=github.com/midiakiasat/cicullis)
+
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 **CICULLIS** is a GitHub Action that enforces **irreversible contracts at CI time**.
