@@ -1,0 +1,65 @@
+name: Determinism Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  determinism:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run twice and compare
+        run: |
+          # First run
+          echo "test input" | ./gate.sh > output1.txt 2>&1 || true
+          echo $? > exit1.txt
+          
+          # Second run
+          echo "test input" | ./gate.sh > output2.txt 2>&1 || true
+          echo $? > exit2.txt
+          
+          # Compare stdout
+          if ! diff output1.txt output2.txt; then
+            echo "FAIL: stdout differs between runs"
+            exit 1
+          fi
+          
+          # Compare exit codes
+          if ! diff exit1.txt exit2.txt; then
+            echo "FAIL: exit code differs between runs"
+            exit 1
+          fi
+          
+          echo "PASS: determinism verified"
+
+  failure-codes-checksum:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify FAILURE_CODES.json checksum
+        run: |
+          EXPECTED="FAILURE_CODES_CHECKSUM"
+          ACTUAL=$(sha256sum FAILURE_CODES.json | cut -d' ' -f1)
+          
+          # On first run, just output the hash
+          echo "Current checksum: $ACTUAL"
+          
+          # If .failure_codes_checksum exists, verify it
+          if [ -f .failure_codes_checksum ]; then
+            EXPECTED=$(cat .failure_codes_checksum)
+            if [ "$ACTUAL" != "$EXPECTED" ]; then
+              echo "FAIL: FAILURE_CODES.json has been modified"
+              echo "Expected: $EXPECTED"
+              echo "Actual: $ACTUAL"
+              exit 1
+            fi
+            echo "PASS: FAILURE_CODES.json checksum verified"
+          else
+            echo "INFO: No checksum file found. Creating one."
+            echo "$ACTUAL" > .failure_codes_checksum
+          fi
