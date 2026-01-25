@@ -1,4 +1,15 @@
-# CICULLIS
+```
+SYS-001
+CICULLIS
+Irreversible CI gate
+
+STATUS: REGISTERED
+REGISTRY: https://speedkit.eu
+```
+
+Registered system. Identity governed by SPEEDKIT registry.
+
+---
 
 [![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-CICULLIS-blue?logo=github)](https://github.com/marketplace/actions/cicullis)
 ![CI](https://img.shields.io/badge/CI-deterministic-critical)
