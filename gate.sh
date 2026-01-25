@@ -2,14 +2,27 @@
 # CICULLIS GATE
 # Deterministic CI boundary gate
 
+# EXIT CODE CONTRACT (IMMUTABLE)
+# 0 = Success (ALLOWED)
+# 1 = Internal error / Time boundary violation
+# 2 = Invalid input (profile not found, malformed, parse error)
+# 3 = Policy violation (reserved)
+
 set -eu
 
 PROFILE="${1:-profiles/default.profile}"
 
+# Exit 2: Profile not found
 [ -f "$PROFILE" ] || {
   echo "PROFILE NOT FOUND"
-  exit 1
+  exit 2
 }
+
+# Exit 2: Malformed profile (basic syntax check)
+if ! grep -qE '^[A-Z_]+(\.[A-Z_]+)*\s*=' "$PROFILE" 2>/dev/null; then
+  echo "PROFILE PARSE ERROR"
+  exit 2
+fi
 
 # --- Extract TIME_BOUNDARY.ENFORCE -----------------------------------------
 
