@@ -10,6 +10,8 @@ SNAPSHOT: https://speedkit.eu/REGISTRY_SNAPSHOT.json
 
 Registered system. Identity governed by SPEEDKIT registry.
 
+STATUS: FINAL
+
 ---
 
 [![GitHub Marketplace](https://img.shields.io/badge/GitHub%20Marketplace-CICULLIS-blue?logo=github)](https://github.com/marketplace/actions/cicullis)
