@@ -42,3 +42,16 @@ jobs:
           echo "$TRACKED" | grep -E -q '(^|/)\.env(\..+)?$|(^|/)id_rsa|(^|/).*\.pem$|(^|/).*\.p12$|(^|/).*\.pfx$|(^|/).*\.key$' && fail "REPO.TRACKED.SECRET_FILE"
 
           echo "OK: hygiene gate satisfied"
+
+  selftest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Expect runtime-state failure
+        run: |
+          cd fixtures/fail-runtime
+          if git ls-files | grep -E -q '^internal/(ledger|state)/'; then
+            echo "OK"
+          else
+            exit 1
+          fi
