@@ -1,4 +1,4 @@
-name: Repo hygiene (tracked junk)
+name: Repo hygiene (tracked artifacts)
 
 on:
   pull_request:
@@ -9,17 +9,42 @@ permissions:
   contents: read
 
 jobs:
-  tracked-junk:
+  hygiene:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Reject tracked runtime/junk files
+
+      - name: Reject tracked runtime/state/artifacts
         shell: bash
         run: |
           set -euo pipefail
-          if git ls-files | rg -q '(^|/)\.DS_Store$|^internal/(ledger|state)/'; then
+
+          # Only check tracked files. No filesystem scanning. Deterministic.
+          TRACKED="$(git ls-files)"
+
+          # 1) CICULLIS runtime state must never be tracked.
+          # If you later need published records, create a new explicit directory (e.g., records/) with schema.
+          echo "$TRACKED" | rg -q '^internal/(ledger|state)/' && {
+            echo "CI-GATE FAILED"
+            echo "Rule: REPO.TRACKED.RUNTIME_STATE"
+            echo "Decision: BLOCKED"
+            exit 1
+          }
+
+          # 2) OS/editor junk
+          echo "$TRACKED" | rg -q '(^|/)\.DS_Store$|(^|/)\.AppleDouble/|(^|/)__MACOSX/|(^|/)\.idea/|(^|/)\.vscode/' && {
             echo "CI-GATE FAILED"
             echo "Rule: REPO.TRACKED.JUNK"
             echo "Decision: BLOCKED"
             exit 1
-          fi
+          }
+
+          # 3) Databases / caches / logs (high-risk, low-value to track)
+          echo "$TRACKED" | rg -q '(^|/).*\.sqlite3?$|(^|/).*\.db$|(^|/).*\.log$|(^|/)\.cache/|(^|/)coverage/|(^|/)dist/|(^|/)build/' && {
+            echo "CI-GATE FAILED"
+            echo "Rule: REPO.TRACKED.ARTIFACT"
+            echo "Decision: BLOCKED"
+            exit 1
+          }
+
+          echo "OK: no tracked runtime/junk/artifacts"
