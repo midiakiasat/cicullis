@@ -8,7 +8,6 @@ __MACOSX/
 .idea/
 
 # local hooks (machine policy, not repo policy)
-.githooks/
 
 # logs / temp
 *.log
