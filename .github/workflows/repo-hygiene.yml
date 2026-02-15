@@ -1,0 +1,25 @@
+name: Repo hygiene (tracked junk)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tracked-junk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject tracked runtime/junk files
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-files | rg -q '(^|/)\.DS_Store$|^internal/(ledger|state)/'; then
+            echo "CI-GATE FAILED"
+            echo "Rule: REPO.TRACKED.JUNK"
+            echo "Decision: BLOCKED"
+            exit 1
+          fi
