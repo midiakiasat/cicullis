@@ -55,3 +55,17 @@ jobs:
           else
             exit 1
           fi
+
+  selftest_pass:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+      - name: Expect clean pass fixture
+        run: |
+          cd fixtures/pass
+          # PASS means: no forbidden tracked paths exist in the fixture
+          if git ls-files | grep -E -q '^internal/(ledger|state)/'; then
+            exit 1
+          else
+            echo "OK"
+          fi
