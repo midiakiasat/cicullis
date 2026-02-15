@@ -1,0 +1,39 @@
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# logs / temp
+*.log
+*.tmp
+*.swp
+
+# env / secrets
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+credentials*
+secret*
+token*
+
+# node/python (if ever used)
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# CICULLIS runtime state (high risk if it contains any receipts/ledgers)
+internal/ledger/
+internal/state/
+
+# local caches
+.cache/
+dist/
+build/
+coverage/
+.githooks/
+.githooks/
