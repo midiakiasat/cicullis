@@ -1,0 +1,16 @@
+# Global ownership — immutable verification-first repository.
+# All paths require review from the maintainer identity.
+
+*                       @midiakiasat
+
+# Governance surface
+/GOVERNANCE.md          @midiakiasat
+/SECURITY.md            @midiakiasat
+/README.md              @midiakiasat
+
+# Cryptographic trust root
+/security/              @midiakiasat
+
+# CI / policy surface
+/.github/               @midiakiasat
+/.github/workflows/     @midiakiasat

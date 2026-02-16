@@ -2,40 +2,33 @@
 
 ## Supported Versions
 
-| Version | Supported |
-|---------|-----------|
-| 1.x     | ✓         |
-| < 1.0   | ✗         |
+This project is security-hardened but does not guarantee long-term support for all historical versions.
+Security fixes, when issued, are applied to the latest release and `main`.
 
-## Reporting
+## Reporting a Vulnerability
 
-For security vulnerabilities affecting CICULLIS execution determinism or policy enforcement:
+Report security issues privately.
 
-1. Open a **private security advisory** via GitHub
-2. Include: version, reproduction steps, expected vs actual behavior
+- Email: contact@speedkit.eu
+- Include:
+  - affected version / commit SHA
+  - reproduction steps / PoC (minimal)
+  - expected vs observed behavior
+  - impact assessment
 
-## Response
+Do **not** open public issues for active vulnerabilities.
 
-- Acknowledgment: 48 hours
-- Assessment: 7 days
-- Fix (if applicable): 30 days
+## Supply-Chain Guarantees
 
-## Scope
+- `main` is protected (PR-only, linear history, signed commits required).
+- Release tags are protected from update and deletion.
+- CI execution is restricted to an allowlist of actions.
 
-**In scope:**
-- Policy bypass
-- Non-deterministic execution
-- Exit code contract violations
+## Verification
 
-**Out of scope:**
-- Denial of service (CICULLIS has no network surface)
-- Social engineering
-- Physical access attacks
+### Verify commit signature on GitHub
+Look for the **Verified** badge on commits and merges.
 
-## Disclosure
-
-All security fixes are disclosed publicly after patch release.
-
-## Contact
-
-GitHub Security Advisories only. No email contact.
+### Verify locally (commit)
+```bash
+git verify-commit <SHA>
