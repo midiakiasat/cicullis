@@ -3,25 +3,35 @@ name: Identity
 on:
   push:
     paths:
-      - 'README.md'
+      - "README.md"
   pull_request:
     paths:
-      - 'README.md'
+      - "README.md"
 
-permissions:
-  contents: read
+permissions: {}
+
+env:
+  LC_ALL: C
+  TZ: UTC
 
 jobs:
   verify:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - name: Verify README identity (SYS-001)
+        shell: bash
         run: |
           set -euo pipefail
-          HEADER=$(sed -n '/^```$/,/^```$/p' README.md | head -10)
-          echo "$HEADER" | grep -q '^SYS-001$' || { echo "FAIL: SYS-001 not found"; exit 1; }
-          echo "$HEADER" | grep -q '^STATUS: REGISTERED$' || { echo "FAIL: STATUS missing"; exit 1; }
-          echo "$HEADER" | grep -q '^REGISTRY: https://speedkit.eu$' || { echo "FAIL: REGISTRY missing"; exit 1; }
+
+          block="$(sed -n '/^```$/,/^```$/p' README.md | head -50 || true)"
+          header="$(printf '%s\n' "$block" | head -10)"
+
+          grep -qx 'SYS-001' <<<"$header" || { echo "FAIL: SYS-001 not found"; exit 1; }
+          grep -qx 'STATUS: REGISTERED' <<<"$header" || { echo "FAIL: STATUS missing"; exit 1; }
+          grep -qx 'REGISTRY: https://speedkit.eu' <<<"$header" || { echo "FAIL: REGISTRY missing"; exit 1; }
+
           echo "PASS: SYS-001 identity verified"
