@@ -6,62 +6,95 @@ on:
     types: [completed]
 
 permissions:
-  contents: read
   pull-requests: write
   statuses: read
+  contents: read
+
+concurrency:
+  group: attestor-${{ github.event.workflow_run.id }}
+  cancel-in-progress: true
 
 jobs:
   attest:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' }}
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
-    steps:
-      - name: Mint GitHub App token
-        id: app
-        uses: actions/create-github-app-token@v1
-        with:
-          app-id: ${{ secrets.VERIFRAX_ATTESTOR_APP_ID }}
-          private-key: ${{ secrets.VERIFRAX_ATTESTOR_PRIVATE_KEY }}
-          owner: Verifrax
-          repositories: CICULLIS
 
-      - name: Resolve PR and SHA
+    steps:
+      - name: Resolve repo, sha, and PR number
         id: ctx
         env:
-          GH_TOKEN: ${{ steps.app.outputs.token }}
-          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.event.workflow_run.repository.full_name }}
           SHA:  ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
-          pr=$(gh api "repos/$REPO/commits/$SHA/pulls" \
+          pr="$(gh api "repos/$REPO/commits/$SHA/pulls" \
             -H "Accept: application/vnd.github+json" \
-            --jq '.[0].number // empty')
+            --jq '.[0].number // empty')"
           if [ -z "$pr" ]; then
-            echo "No PR found for SHA=$SHA. Exiting."
+            echo "No PR found for SHA=$SHA in $REPO. Exiting."
             exit 0
           fi
-          echo "pr=$pr" >> "$GITHUB_OUTPUT"
-          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "repo=$REPO" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA"   >> "$GITHUB_OUTPUT"
+          echo "pr=$pr"     >> "$GITHUB_OUTPUT"
 
-      - name: Gate on combined status = success
+      - name: Gate on required legacy statuses (branch protection contexts)
         env:
-          GH_TOKEN: ${{ steps.app.outputs.token }}
-          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ steps.ctx.outputs.repo }}
           SHA:  ${{ steps.ctx.outputs.sha }}
         run: |
           set -euo pipefail
-          state=$(gh api "repos/$REPO/commits/$SHA/status" --jq '.state')
-          echo "combined status: $state"
-          [ "$state" = "success" ] || exit 0
 
-      - name: Approve PR as App
+          # Fetch all statuses and verify required contexts are success
+          json="$(gh api "repos/$REPO/commits/$SHA/status" \
+            -H "Accept: application/vnd.github+json")"
+
+          need_ok() {
+            local ctx="$1"
+            echo "$json" | jq -e --arg c "$ctx" '
+              (.statuses // [])
+              | map(select(.context == $c))
+              | .[0].state == "success"
+            ' >/dev/null
+          }
+
+          for ctx in \
+            "Gates / cicullis (pull_request)" \
+            "Gates / hygiene (pull_request)" \
+            "Gates / selftest (pull_request)"
+          do
+            echo "Checking required context: $ctx"
+            if ! need_ok "$ctx"; then
+              echo "Required status not success: $ctx"
+              exit 0
+            fi
+          done
+
+          echo "All required legacy statuses are success."
+
+      - name: Approve PR as github-actions[bot]
         env:
-          GH_TOKEN: ${{ steps.app.outputs.token }}
-          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ steps.ctx.outputs.repo }}
           PR:   ${{ steps.ctx.outputs.pr }}
           SHA:  ${{ steps.ctx.outputs.sha }}
         run: |
           set -euo pipefail
+
+          already="$(gh api "repos/$REPO/pulls/$PR/reviews" \
+            -H "Accept: application/vnd.github+json" \
+            --jq '[.[] | select(.state=="APPROVED") | select(.user.login=="github-actions[bot]")] | length')"
+
+          if [ "$already" != "0" ]; then
+            echo "github-actions[bot] already approved. Exiting."
+            exit 0
+          fi
+
           gh api -X POST "repos/$REPO/pulls/$PR/reviews" \
             -H "Accept: application/vnd.github+json" \
             -f event=APPROVE \
-            -f body="VERIFRAX-ATTESTOR: Gates succeeded; combined status success on $SHA. Deterministic approval."
+            -f body="ATTESTOR: Gates succeeded; required statuses are success on $SHA. Approval issued by github-actions[bot]."
