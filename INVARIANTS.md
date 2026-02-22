@@ -26,3 +26,4 @@ These properties are guaranteed by CICULLIS and must never be violated.
 1. **Offline verifiable**: No network required to verify results
 2. **Self-contained**: All information needed is in output
 3. **Hash-addressable**: Output can be uniquely identified by hash
+
